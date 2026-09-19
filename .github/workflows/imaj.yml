@@ -1,0 +1,53 @@
+name: trellis2-imaj
+# İmaj GitHub'ın ücretsiz koşucusunda inşa edilir (laptopta Docker/WSL yok, 49 GB disk) → ghcr.io'ya itilir.
+# vast.ai pod'u bu imajla açılır: kurulum yok, ağırlık indirme yok, üretim ~3 dk'da başlar.
+on:
+  push:
+    branches: [main]
+    paths: [Dockerfile, trellis2-toplu.py, t2-basla.sh, .github/workflows/imaj.yml]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 300
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      # Koşucuda / diskinde ~14 GB boş var; imaj ~22 GB (CUDA devel 7 + torch 6 + ağırlık 8). Yer açılır.
+      - name: Disk aç (dotnet/android/haskell/codeql sil, LVM ile /var/lib/docker büyüt)
+        uses: easimon/maximize-build-space@v10
+        with:
+          root-reserve-mb: 4096
+          temp-reserve-mb: 1024
+          swap-size-mb: 1024
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+          remove-docker-images: 'true'
+          build-mount-path: /var/lib/docker/
+      - name: Docker'ı yeni diskle yeniden başlat
+        run: sudo systemctl restart docker && df -h /var/lib/docker
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: ghcr.io oturumu
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: İnşa + it
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/trellis2:cu124-torch26
+            ghcr.io/${{ github.repository_owner }}/trellis2:${{ github.sha }}
+          # Katman önbelleği: bir sonraki inşada değişmeyen katmanlar (torch, uzantılar, ağırlık) yeniden yapılmaz
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/trellis2:onbellek
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/trellis2:onbellek,mode=max
+      - name: Sonuç
+        run: echo "İMAJ HAZIR → ghcr.io/${{ github.repository_owner }}/trellis2:cu124-torch26"
