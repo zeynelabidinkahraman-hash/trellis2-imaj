@@ -4,10 +4,11 @@
 # Reçete = 19.09'da pod 51595671 üzerinde ÇALIŞTIĞI DOĞRULANAN adımlar (arac/t2-pod-kur-torch26.sh), conda'sız.
 FROM nvidia/cuda:12.4.1-devel-ubuntu22.04
 
+# 19.09 1. inşa: "runner lost communication" — 7 GB RAM koşucuda MAX_JOBS=4 nvcc belleği tüketti → MAX_JOBS=1 + 8 GB takas
 ENV DEBIAN_FRONTEND=noninteractive \
     CUDA_HOME=/usr/local/cuda \
     TORCH_CUDA_ARCH_LIST="8.6;8.9" \
-    MAX_JOBS=4 \
+    MAX_JOBS=1 \
     HF_HOME=/workspace/hf \
     PYTHONPATH=/workspace/T2 \
     PYTHONUNBUFFERED=1 \
