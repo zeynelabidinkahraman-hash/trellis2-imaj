@@ -8,6 +8,9 @@ cd /workspace
 export HF_HOME=/workspace/hf PYTHONPATH=/workspace/T2 PATH=/workspace/venv/bin:$PATH
 [ -n "${HF_TOKEN:-}" ] || { echo "✗ HF_TOKEN yok — DINOv3 inmez"; exit 1; }
 mkdir -p /workspace/cikti-toplu
+# Ağırlıklar (imajda yok): TRELLIS.2-4B ~8 GB + DINOv3 ~1,2 GB; hf paralel indirir, ikinci çalıştırmada atlar
+python3 -c "from huggingface_hub import snapshot_download as s; import os; s('microsoft/TRELLIS.2-4B', max_workers=16); s('facebook/dinov3-vitl16-pretrain-lvd1689m', max_workers=16, token=os.environ['HF_TOKEN'])" 2>&1 | tail -2 || { echo "✗ ağırlık indirme düştü"; exit 1; }
+echo "== $(date) ağırlıklar hazır: $(du -sh /workspace/hf | cut -f1)"
 echo "== $(date) ÜRETİM BAŞLIYOR · girdi: $(ls /workspace/girdi/*.png 2>/dev/null | wc -l) · GPU: $(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | head -1)"
 # 16.09 TUZAK 3 — 'nohup … &' ssh kapanınca düşüyordu; setsid + stdin /dev/null ŞART
 setsid nohup /workspace/venv/bin/python3 -u /workspace/trellis2-toplu.py \

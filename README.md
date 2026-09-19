@@ -7,7 +7,7 @@ Kurulum bir kez burada yapılır, kapıdan geçer, dondurulur.
 **İmaj:** `ghcr.io/zeynelabidinkahraman-hash/trellis2:cu124-torch26`
 - CUDA 12.4 devel · Python 3.10 venv (/workspace/venv) · torch 2.6.0+cu124 · flash-attn 2.7.3 (hazır wheel)
 - nvdiffrast 0.4.0, nvdiffrec, CuMesh, FlexGEMM, o_voxel — sm 8.6 (3090) + 8.9 (4090) için derli
-- transformers 4.57.1 · TRELLIS.2 commit 75fbf018 · **microsoft/TRELLIS.2-4B ağırlıkları gömülü** (HF_HOME=/workspace/hf)
+- transformers 4.57.1 · TRELLIS.2 commit 75fbf018 · ağırlıklar GÖMÜLÜ DEĞİL (koşucu diski 23 GB); t2-basla.sh açılışta indirir (HF_HOME=/workspace/hf)
 - DINOv3 gated → gömülü DEĞİL; pod'a `HF_TOKEN` env verilir, ilk çalıştırmada ~1,2 GB iner
 
 **vast.ai kullanımı** (arac/vast-kirala.js `--imaj` ile):
