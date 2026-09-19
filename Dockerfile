@@ -53,10 +53,10 @@ RUN git clone -q --recursive https://github.com/JeffreyXiang/FlexGEMM.git /tmp/e
     && pip install -q /tmp/ext/FlexGEMM --no-build-isolation && rm -rf /tmp/ext
 RUN pip install -q /workspace/T2/o-voxel --no-build-isolation
 
-# 6) KURULUM KAPISI — eksik modül varsa imaj ÜRETİLMEZ (sessiz başarısızlık yok; 19.09'da "KURULUM BİTTİ" yazıp torch'suz kalmıştı)
-RUN for M in torch flash_attn o_voxel cumesh flex_gemm nvdiffrast transformers trellis2 utils3d; do \
-      python3 -c "import $M" || { echo "✗ EKSİK: $M"; exit 1; }; done \
-    && python3 -c "import torch,transformers;print('torch',torch.__version__,'cuda',torch.version.cuda,'transformers',transformers.__version__)"
+# 6) KURULUM KAPISI — eksik modül varsa imaj ÜRETİLMEZ (sessiz başarısızlık yok; 19.09'da "KURULUM BİTTİ" yazıp torch'suz kalmıştı).
+#    ⚠ 2. inşa dersi: o_voxel/cumesh/flex_gemm İÇE AKTARILIRKEN CUDA sürücüsü ister ("0 active drivers") — koşucuda GPU yok.
+#    Bu yüzden CUDA modülleri find_spec ile (kurulu mu), saf Python modülleri tam import ile denetlenir; işlev testi pod'da (t2-basla.sh).
+RUN for M in torch flash_attn o_voxel cumesh flex_gemm nvdiffrast transformers trellis2 utils3d; do       python3 -c "import importlib.util,sys; sys.exit(0 if importlib.util.find_spec('$M') else 1)" || { echo "✗ EKSİK: $M"; exit 1; }; done     && python3 -c "import torch,transformers,utils3d;print('torch',torch.__version__,'cuda',torch.version.cuda,'transformers',transformers.__version__)"
 
 # 7) AĞIRLIKLAR imaja gömülür (~8 GB; pod'da 30 dk indirme + $0,30 trafik bedeli bitiyor). TRELLIS.2-4B MIT lisanslı, açık.
 #    DINOv3 (facebook/dinov3-vitl16) GATED → gömülmez, çalışma anında HF_TOKEN ile iner (~1,2 GB).
